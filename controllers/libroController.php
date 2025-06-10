@@ -18,10 +18,6 @@ class LibroController {
 
     public function processRequest(){
 
-        //comprobar si los datos vienen en $_POST
-
-
-
         //comprobar si la petición ha sido realizada con GET, POST, PUT, DELETE
         switch($this->requestMethod){
             case 'GET':
@@ -112,11 +108,16 @@ class LibroController {
 
             //viene un archivo y es una imagen válida
             //guardar imagen en el servidor con nombre basado en el título
-            $nombreNuevaImagen = $this->guardarImagen($_FILES['imagen'], $input['titulo']);
-            if(!$nombreNuevaImagen){
+            $nombreImagen = $this->guardarImagen($_FILES['imagen'], $input['titulo']);
+            if(!$nombreImagen){
                 return $this->errorGuardarImagenRespuesta();
             }
 
+        }//fin de comprobación de si viene una imagen
+
+        //añadir el nombre de la imagen a los datos del nuevo libro
+        if($nombreImagen !== false){
+            $input['imagen'] = $nombreImagen;
         }
 
         $libro = $this->libroDB->create($input);
@@ -145,10 +146,6 @@ class LibroController {
         //el libro existe
         //leo los datos que llegan en el body de la  petición
         $input = json_decode(file_get_contents('php://input'),true);
-
-        // if(!$this->validarDatos($input)){
-        //     return $this->datosInvalidosRespuesta();
-        // }
 
         //el libro existe y los datos que llegan son válidos
         $libroActualizado = $this->libroDB->update($this->libroId, $input);
@@ -191,6 +188,34 @@ class LibroController {
 
     }//fin delete libro
 
+
+    private function guardarImagen($archivo, $titulo){
+        //Limpiar el título para utilizarlo como nombre de archivo
+        $nombreLimpio = $this->limpiarNombreArchivo($titulo);
+
+        //obtener la extensión del archivo
+        $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
+
+        //crear el nombre del archivo
+        $nombreArchivo = $nombreLimpio . "." . $extension;
+
+        //Definir rutas
+        $directorioDestino = '../img/peques/';
+        $rutaCompleta = $directorioDestino . $nombreArchivo;
+
+        //crear el directorio si no existe
+        if(!file_exists($directorioDestino)){
+            mkdir($directorioDestino, 0755, true);
+        }
+
+        //movemos el archivo subido
+        if(move_uploaded_file($archivo['tmp_name'], $rutaCompleta)){
+            return $nombreArchivo;
+        }
+
+        return false;
+
+    }
 
     private function validarDatos($datos){
         if(!isset($datos['titulo']) || !isset($datos['autor'])){
@@ -286,5 +311,41 @@ class LibroController {
             'error' => 'Error al guardar la imagen en el servidor'
         ]);
         return $respuesta;       
+    }
+
+        /**
+     * Limpia el título para usarlo como nombre de archivo
+     * @param string $titulo - Título del libro
+     * @return string - Nombre limpio para archivo
+     */
+    private function limpiarNombreArchivo($titulo) {
+        // Convertir a minúsculas
+        $nombre = strtolower($titulo);
+        
+        // Reemplazar caracteres especiales y espacios
+        $nombre = preg_replace('/[áàäâ]/u', 'a', $nombre);
+        $nombre = preg_replace('/[éèëê]/u', 'e', $nombre);
+        $nombre = preg_replace('/[íìïî]/u', 'i', $nombre);
+        $nombre = preg_replace('/[óòöô]/u', 'o', $nombre);
+        $nombre = preg_replace('/[úùüû]/u', 'u', $nombre);
+        $nombre = preg_replace('/[ñ]/u', 'n', $nombre);
+        $nombre = preg_replace('/[ç]/u', 'c', $nombre);
+        
+        // Reemplazar espacios y caracteres no alfanuméricos con guiones bajos
+        $nombre = preg_replace('/[^a-z0-9]/i', '_', $nombre);
+        
+        // Eliminar guiones bajos múltiples
+        $nombre = preg_replace('/_+/', '_', $nombre);
+        
+        // Eliminar guiones bajos al inicio y final
+        $nombre = trim($nombre, '_');
+        
+        // Limitar longitud
+        if (strlen($nombre) > 50) {
+            $nombre = substr($nombre, 0, 50);
+            $nombre = trim($nombre, '_');
+        }
+        
+        return $nombre ?: 'libro_sin_titulo';
     }
 }

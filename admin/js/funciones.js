@@ -52,7 +52,7 @@ function mostrarLibros(datos){
                 <td>${libro.autor}</td>
                 <td>${libro.genero}</td>
                 <td>${libro.fecha_publicacion}</td>
-                <td><img src="../img/peques/${libro.imagen}?${new Date().getTime()}" alt="${libro.titulo}" /></td>
+                <td>${(libro.imagen && libro.imagen.trim() !== '') ? `<img src="../img/peques/${libro.imagen}?${new Date().getTime()}" alt="${libro.titulo}" />` : 'Sin imagen'}</td>
                 <td class="centrado">${(libro.disponible == 1) ? "Sí" : "No"}</td>
                 <td class="centrado">${(libro.favorito == 1) ? "Sí" : "No"}</td>
                 <td>${(libro.resumen !== null && libro.resumen.length > 0) ? libro.resumen.substring(0, 100)+"..." : ''}</td>
@@ -103,6 +103,7 @@ function editarLibro(id){
 }
 
 function enviarDatosNuevoLibro(e){
+    //detener el envío del formulario
     e.preventDefault(); 
 
     const mensajesError = document.querySelectorAll('.error')
@@ -154,6 +155,17 @@ function enviarDatosNuevoLibro(e){
     if(errores) return //si hay errores no se envía el formulario
 
     //Si estamos aquí los datos del formulario son válidos
+    // const datos = {
+    //     titulo: titulo,
+    //     autor: autor,
+    //     genero: genero,
+    //     fecha_publicacion: fecha_publicacion,
+    //     disponible: disponible,
+    //     favorito: favorito,
+    //     resumen: resumen
+    // }
+
+    //Si no ponemos el nombre de la clave, se crea una con el mismo nombre de la variable
     const datos = {
         titulo,
         autor,
@@ -221,7 +233,7 @@ function validarImagen(archivo){
     if(!tiposPermitidos.includes(archivo.type)){
         return {
             esValido: false,
-            mensaje: "Solo se permiten archivos de imagen (JPEG, PNG, GIF, WebP)"
+            mensaje: "Solo se permiten archivos de imagen (JPG, JPEG, PNG, GIF, WebP)"
          }
     }
 
