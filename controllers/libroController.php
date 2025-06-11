@@ -18,8 +18,14 @@ class LibroController {
 
     public function processRequest(){
 
+        //comprobar si viene la  clave _method en el objeto
+        $metodo = $this->requestMethod;
+        if($this->requestMethod === 'POST' && isset($_POST['_method'])){
+            $metodo = strtoupper($_POST['_method']);
+        }
+
         //comprobar si la petición ha sido realizada con GET, POST, PUT, DELETE
-        switch($this->requestMethod){
+        switch($metodo){
             case 'GET':
                 if($this->libroId){
                     //devolver un libro
@@ -144,10 +150,40 @@ class LibroController {
             return $this->noEncontradoRespuesta();
         }
         //el libro existe
-        //leo los datos que llegan en el body de la  petición
-        $input = json_decode(file_get_contents('php://input'),true);
-
+        //Verificar si los datos vienen en $_POST con FormData y method spoofing o en el body
+        if(!empty($_POST['datos'])){
+            $input = json_decode($_POST['datos'], true);
+        }else{
+            //leo los datos que llegan en el body de la  petición
+            $input = json_decode(file_get_contents('php://input'),true);
+        }
+        //validar datos
+        if(!$this->validarDatos($input)){
+            return $this->datosInvalidosRespuesta();
+        }
         //el libro existe y los datos que llegan son válidos
+
+        //guardar el nombre de la imagen actual
+        $nombreImagenAnterior = $libro['imagen'];
+        $nombreImagenNueva = $nombreImagenAnterior;
+
+        //procesar la imagen si viene
+        if(isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK){
+            //Se ha subido un archivo y se ha subido sin errores
+            $validacionImagen = $this->validarImagen($_FILES['imagen']);
+            if(!$validacionImagen['valida']){
+                return $this->imagenInvalidaRespuesta($validacionImagen['mensaje']);
+            }
+
+            //guardar la nueva imagen con nombre basado en el título
+            $nombreImagenNueva = $this->guardarImagen($_FILES['imagen'], $input['titulo']);
+            if(!$nombreImagenNueva){
+                return $this->errorGuardarImagenRespuesta();
+            }
+        }
+
+        $input['imagen'] = $nombreImagenNueva;
+
         $libroActualizado = $this->libroDB->update($this->libroId, $input);
 
         if(!$libroActualizado){

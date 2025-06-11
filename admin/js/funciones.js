@@ -36,6 +36,7 @@ function mostrarLibros(datos){
     const libros = datos.data;
     librosData = libros
     console.log(libros)
+    console.log(datos)
 
     if(datos.success && datos.count > 0){
         document.getElementById('tablaLibros').innerHTML = 
@@ -106,8 +107,9 @@ function libroEliminado(data){
 }
 
 function editarLibro(id){
-    //todo ir al inicio de la página
-    
+    //ir al inicio de la página de manera suave
+    window.scrollTo({top: 0, behavior: 'smooth'})
+
     //buscamos el libro que queremos modificar
     const libro = librosData.find(lib => lib.id == id)
 
@@ -153,7 +155,26 @@ function mostrarFormularioEdicion(){
 }
 
 function mostrarImagenActual(imagen, titulo){
+    //Eliminar imagen previa si existe
+    const imagenPrevia = document.getElementById('imagen-actual')
+    if(imagenPrevia){
+        imagenPrevia.remove()
+    }
 
+    //comprobar que el libro tiene imagen
+    if(imagen && imagen.trim() !== ''){
+        //Crear un elemento para mostrar la imagen actual
+        const divImagen = document.createElement('div')
+        divImagen.id = 'imagen-actual'
+        divImagen.innerHTML = `
+            <p><strong>Imagen actual</strong></p>
+            <img class="imagenEditar" src="../img/peques/${imagen}?${new Date().getTime()}" alt="${titulo}" />
+            <p>Selecciona una nueva imagen para reemplazarla</p>
+        `
+        //Mostrar el divImagen después del input de imagen
+        const inputImagen = document.getElementById('imagen')
+        inputImagen.before(divImagen)
+    }
 }
 
 function enviarDatosNuevoLibro(e){
@@ -238,21 +259,30 @@ function enviarDatosNuevoLibro(e){
     }
     
     const metodo = 'POST'
+    const urlPeticion = modoEdicion ? `${url}/${libroEditandoId}` : url
+    const mensajeExito = modoEdicion ? "Libro actualizado con éxito" : "Libro guardado con éxito"
+    //si estamos en modo edicion añadimos un parámetro _method 
+    if(modoEdicion){
+        formData.append("_method", "PUT")
+    }
 
-    fetch(url, {
+    fetch(urlPeticion, {
         method: metodo,
         body: formData
     })
     .then(response => response.json())
     .then(data => {
         if(data.success){
-            alert("Libro guardado con éxito!!!")
+            alert(mensajeExito)
             //limpio el formulario
             document.querySelector('form').reset()
             //oculto el formulario
             document.querySelector('form').style.display = "none"
             //cambio el texto del boton
             document.getElementById("crear").textContent = "Crear nuevo libro"
+
+            resetearModoCreacion()
+
             //volvemos a pedir todos los libros
             cargarLibros()
         }else{
@@ -261,6 +291,8 @@ function enviarDatosNuevoLibro(e){
     })
     .catch(error => {
         console.error("Error al enviar datos: ", error)
+        const accion = modoEdicion ? "actualizar" : "guardar"
+        alert(`Error al ${accion} el libro`)
     })
 }
 

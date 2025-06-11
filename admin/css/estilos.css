@@ -80,8 +80,12 @@
   color: #1f2937;
 }
 
-.tablaLibros img{
+.tablaLibros img {
   width: 50px;
+}
+
+.imagenEditar {
+  width: 150px;
 }
 
 button {
