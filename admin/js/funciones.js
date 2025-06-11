@@ -1,5 +1,9 @@
 const url = 'http://localhost/ApiBiblioteca/api/libros';
 
+let librosData = [] //almacenar los datos de todos los libros
+let modoEdicion = false //para saber si estamos creando o editando
+let libroEditandoId = null // ID del libro que se está editando
+
 document.addEventListener('DOMContentLoaded', () => {
     
     //realizo la llamada a la api para conseguir los datos
@@ -19,7 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelector('form').style.display = 'none'
             document.getElementById("crear").textContent = 'Crear nuevo libro'
         }
-        
+        if(modoEdicion){
+            resetearModoCreacion()
+        } 
     })
 
     document.querySelector('form').addEventListener('submit', enviarDatosNuevoLibro)
@@ -28,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function mostrarLibros(datos){
 
     const libros = datos.data;
+    librosData = libros
     console.log(libros)
 
     if(datos.success && datos.count > 0){
@@ -99,7 +106,54 @@ function libroEliminado(data){
 }
 
 function editarLibro(id){
-    alert("Editar");
+    //todo ir al inicio de la página
+    
+    //buscamos el libro que queremos modificar
+    const libro = librosData.find(lib => lib.id == id)
+
+    if(libro){
+        //activar el modo edicion
+        modoEdicion = true
+        libroEditandoId = id
+
+        //rellenamos el formulario con los datos del libro que queremos editar
+        rellenarFormularioEdicion(libro)
+
+        //mostramos formulario en modo edicion
+        mostrarFormularioEdicion()
+    } else {
+        alert("Error: No se encontraron los datos del libro")
+    }
+}
+
+function rellenarFormularioEdicion(libro){
+    document.getElementById('titulo').value = libro.titulo || ''
+    document.getElementById('autor').value = libro.autor || ''
+    document.getElementById('genero').value = libro.genero || ''
+    document.getElementById('fecha_publicacion').value = libro.fecha_publicacion || ''
+    document.getElementById('disponible').checked = libro.disponible == 1
+    document.getElementById('favorito').checked = libro.favorito == 1
+    document.getElementById('resumen').value = libro.resumen || ''
+
+    //limpiar el campo de la imagen
+    document.getElementById('imagen').value = ''
+
+    //mostrar la imagen actual si existe
+    mostrarImagenActual(libro.imagen, libro.titulo)
+}
+
+function mostrarFormularioEdicion(){
+    //Mostrar formulario
+    document.querySelector('form').style.display = 'grid'
+
+    //cambiar los textos para el modo edicion
+    document.querySelector('form h2').textContent = "Editar libro"
+    document.getElementById('btnGuardar').textContent = "Actualizar libro"
+    document.getElementById("crear").textContent = "Ocultar formulario"
+}
+
+function mostrarImagenActual(imagen, titulo){
+
 }
 
 function enviarDatosNuevoLibro(e){
@@ -260,4 +314,21 @@ function validarImagen(archivo){
         mensaje: ''
     }
 
+}
+
+function resetearModoCreacion(){
+    modoEdicion = false
+    libroEditandoId = null
+
+    //Restauramos los textos originales
+    document.querySelector('form h2').textContent = "Nuevo Libro"
+    document.getElementById('btnGuardar').textContent = 'Guardar libro'
+
+    //Eliminar la imagen actual si existe
+    const imagenPrevia = document.getElementById('imagen-actual')
+    if(imagenPrevia){
+        imagenPrevia.remove()
+    }
+
+    document.querySelector('form').reset()
 }
