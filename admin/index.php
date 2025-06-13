@@ -1,5 +1,17 @@
 <?php
-    //todo comprobar si el usuario está logueado
+    // comprobar si el usuario está logueado y si no está logueado lo mandamos a login
+    if (session_status() == PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    if(!isset($_SESSION['logueado']) || !$_SESSION['logueado']){
+        header("Location: login.php");
+    }
+    if(isset($_SESSION['mensaje'])){
+        echo '<div>'.$_SESSION['mensaje'].'</div>';
+        unset($_SESSION['mensaje']);
+    }
+    echo '<button id="cerrarSesion">Cerrar Sesión</button>';
 ?>
 
 <!DOCTYPE html>
@@ -70,5 +82,6 @@
     <table class="tablaLibros" id="tablaLibros"></table>
     </div>
     <script src="js/funciones.js"></script>
+    <script src="js/sesiones.js"></script>
 </body>
 </html>

@@ -11,6 +11,7 @@ class LibroDB {
         $this->db = $database->getConexion();
     }
 
+    
     //extrae todos los datos de la tabla $table
     public  function getAll(){
         //construye la consulta

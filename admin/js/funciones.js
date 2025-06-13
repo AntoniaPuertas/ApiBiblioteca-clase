@@ -59,7 +59,7 @@ function mostrarLibros(datos){
                 <td>${libro.titulo}</td>
                 <td>${libro.autor}</td>
                 <td>${libro.genero}</td>
-                <td>${libro.fecha_publicacion}</td>
+                <td class="centrado">${libro.fecha_publicacion}</td>
                 <td>${(libro.imagen && libro.imagen.trim() !== '') ? `<img src="../img/peques/${libro.imagen}?${new Date().getTime()}" alt="${libro.titulo}" />` : 'Sin imagen'}</td>
                 <td class="centrado">${(libro.disponible == 1) ? "Sí" : "No"}</td>
                 <td class="centrado">${(libro.favorito == 1) ? "Sí" : "No"}</td>
@@ -270,7 +270,10 @@ function enviarDatosNuevoLibro(e){
         method: metodo,
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log(response)
+        return response.json()
+    })
     .then(data => {
         if(data.success){
             alert(mensajeExito)

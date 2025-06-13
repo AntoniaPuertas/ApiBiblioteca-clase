@@ -1,7 +1,7 @@
 <?php
 //recibe los datos de una petición y devuelve una respuesta
 class LibroController {
-    private $libroDB;
+    private $libroDB; //instancia de Database
     private $requestMethod;
     private $libroId;
 
@@ -14,7 +14,6 @@ class LibroController {
         $this->requestMethod = $requestMethod;
         $this->libroId = $libroId;
     }
-
 
     public function processRequest(){
 
@@ -210,6 +209,7 @@ class LibroController {
 
         if($this->libroDB->delete($id)){
             //libro borrado
+            $this->eliminarImagen($libro['imagen']);
             //construir la respuesta
             $respuesta['status_code_header'] = 'HTTP/1.1 200 OK';
             $respuesta['body'] = json_encode([
@@ -251,6 +251,15 @@ class LibroController {
 
         return false;
 
+    }
+
+    private function eliminarImagen($nombreArchivo){
+        if(empty($nombreArchivo)) return;
+
+        $rutaArchivo = "../img/peques/" . $nombreArchivo;
+        if(file_exists($rutaArchivo)){
+            unlink($rutaArchivo);
+        }
     }
 
     private function validarDatos($datos){
