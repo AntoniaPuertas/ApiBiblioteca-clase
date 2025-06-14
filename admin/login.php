@@ -9,16 +9,12 @@
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-
-//comprobar si el usuario ya está logueado
-
-//si está logueado redirigir a index
-
-//mostrar un formulario que pida correo y contraseña
-
-//comprobar que los datos sean correctos
-
-//si son correctos iniciar sesion y redirigir a index
+var_dump($_SESSION);
+// Comprobar si el usuario ya está logueado
+if(isset($_SESSION['logueado']) && $_SESSION['logueado']) {
+    header("Location: index.php");
+    exit();
+}
 
 ?>
 

@@ -24,7 +24,7 @@ if(!$resultado['success']){
 
 //enviar al usuario al index
 $_SESSION['mensaje'] = "Se ha logueado correctamente";
-$_SESSION['nombre'] = $respuesta['usuario']['nombre'];
+//$_SESSION['nombre'] = $respuesta['usuario']['nombre'];
 $_SESSION['logueado'] = true; 
 header("Location: ../admin/index.php");
 exit();
