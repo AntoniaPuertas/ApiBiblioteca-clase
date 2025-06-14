@@ -179,7 +179,7 @@ class UsuarioDB {
         unset($usuario['token']);
         unset($usuario['token_recuperacion']);
         
-        return ['success' => true, 'usuario' => $usuario];        
+        return ['success' => true, 'usuario' => $usuario, 'mensaje' => 'Login correcto'];        
     }
 
     /**

@@ -9,7 +9,7 @@
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-var_dump($_SESSION);
+
 // Comprobar si el usuario ya está logueado
 if(isset($_SESSION['logueado']) && $_SESSION['logueado']) {
     header("Location: index.php");

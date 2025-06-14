@@ -7,11 +7,12 @@
     if(!isset($_SESSION['logueado']) || !$_SESSION['logueado']){
         header("Location: login.php");
     }
+    
+    $mensaje = '';
     if(isset($_SESSION['mensaje'])){
-        echo '<div>'.$_SESSION['mensaje'].'</div>';
+        $mensaje = $_SESSION['mensaje'];
         unset($_SESSION['mensaje']);
     }
-    echo '<button id="cerrarSesion">Cerrar Sesión</button>';
 ?>
 
 <!DOCTYPE html>
@@ -24,7 +25,10 @@
 </head>
 <body>
     <div class="container">
-    <h1>Panel de control</h1>
+    <h1>Panel de control</h1>    
+    <div style="text-align: right; margin-bottom: 20px;">
+        <button id="cerrarSesion">Cerrar Sesión</button>
+    </div> 
     <div class="panelCrear">
         <button id="crear" class="btn-crear">Crear nuevo libro</button>
     </div>
