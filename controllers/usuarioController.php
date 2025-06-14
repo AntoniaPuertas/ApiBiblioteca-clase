@@ -16,7 +16,11 @@ if($respuesta['error'])                                  { enviarALogin(); retur
 
 //comprobar si el usuario existe en la base
 $resultado = consultarBase();
-if(!$resultado['success'])                                          { enviarALogin(); return; }
+
+if(!$resultado['success']){
+     enviarALogin(); 
+     return;
+}
 
 //enviar al usuario al index
 $_SESSION['mensaje'] = "Se ha logueado correctamente";

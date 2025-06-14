@@ -155,25 +155,31 @@ class UsuarioDB {
      */
     public function verificarCredenciales($correo, $password){
         $usuario = $this->getByEmail($correo);
-        
-        if($usuario && password_verify($password, $usuario['password'])){
-            // Verificar si el usuario no está bloqueado
-            if($usuario['bloqueado'] == 1){
-                return ['success' => false, 'mensaje' => 'Usuario bloqueado'];
-            }
-            
-            // Actualizar último acceso
-            $this->actualizarUltimoAcceso($usuario['id']);
-            
-            // No devolver la contraseña ni los tokens
-            unset($usuario['password']);
-            unset($usuario['token']);
-            unset($usuario['token_recuperacion']);
-            
-            return ['success' => true, 'usuario' => $usuario];
+
+        // Si no existe el usuario
+        if(!$usuario){
+            return ['success' => false, 'mensaje' => 'Usuario no encontrado'];
         }
+
+        // Verificar si el usuario está bloqueado
+        if($usuario['bloqueado'] == 1){
+            return ['success' => false, 'mensaje' => 'Usuario bloqueado'];
+        }
+
+        // Verificar la contraseña
+        if(!password_verify($password, $usuario['password'])){
+            return ['success' => false, 'mensaje' => 'Contraseña incorrecta'];
+        }
+
+        // Credenciales correctas - actualizar último acceso
+        $this->actualizarUltimoAcceso($usuario['id']);
         
-        return ['success' => false, 'mensaje' => 'Credenciales incorrectas'];
+        // No devolver la contraseña ni los tokens
+        unset($usuario['password']);
+        unset($usuario['token']);
+        unset($usuario['token_recuperacion']);
+        
+        return ['success' => true, 'usuario' => $usuario];        
     }
 
     /**
