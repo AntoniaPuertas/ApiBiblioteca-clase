@@ -2,26 +2,10 @@
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-//recibe los datos de login y devuelve si son correctos o no
 
-//comprobar que los datos llegan
-// if(isset($_POST['email']) && isset($_POST['password'])){
-//     $respuesta = comprobarDatos();
-//     if($respuesta['error']){
-//         //reenviamos a login.php
-//         enviarALogin();
-//     }else{
-//         $resultado = consultarBase();
-//         if($resultado){
-//             //enviar al usuario al index
-//             header("Location: ../admin/index.php");
-//         }else{
-//             enviarALogin();
-//         }
-//     }
-// }else{
-//     enviarALogin();
-// }
+// Incluir las clases necesarias
+require_once '../config/database.php';
+require_once '../data/usuarioDB.php';
 
 //comprobar que los datos llegan
 if(!isset($_POST['email']) || !isset($_POST['password'])){ enviarALogin(); return;}
@@ -32,13 +16,14 @@ if($respuesta['error'])                                  { enviarALogin(); retur
 
 //comprobar si el usuario existe en la base
 $resultado = consultarBase();
-if(!$resultado)                                          { enviarALogin(); return; }
+if(!$resultado['success'])                                          { enviarALogin(); return; }
 
 //enviar al usuario al index
-header("Location: ../admin/index.php");
 $_SESSION['mensaje'] = "Se ha logueado correctamente";
-//$_SESSION['nombre'] = $usuario;
+$_SESSION['nombre'] = $respuesta['usuario']['nombre'];
 $_SESSION['logueado'] = true; 
+header("Location: ../admin/index.php");
+exit();
 
 function enviarALogin(){
     header("Location: ../admin/login.php");
@@ -53,7 +38,12 @@ function comprobarDatos(){
 
     $email = trim($email);
     $email = strtolower($email);
-    $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+     // Validar formato de email
+    if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
+        $respuesta['error'] = true;
+        $respuesta['mensaje'] = "El formato del correo electrónico no es válido";
+        return $respuesta;
+    }
 
     if(strlen($password) < 4 || strlen($password) > 15){
         $_SESSION['mensaje'] = "La contraseña debe tener entre 4 y 15 caracteres";
@@ -63,6 +53,27 @@ function comprobarDatos(){
 }
 
 function consultarBase(){
-    //todo consultar si el usuario existe y la contraseña es correcta
-    return true;
+    try {
+        // Crear conexión a la base de datos
+        $database = new Database();
+        $usuarioDB = new UsuarioDB($database);
+        
+        // Obtener los datos del formulario
+        $email = $_POST['email'];
+        $password = $_POST['password'];
+        
+        // Verificar las credenciales
+        $resultado = $usuarioDB->verificarCredenciales($email, $password);
+        
+        // Cerrar la conexión
+        $database->close();
+        $_SESSION['mensaje'] = $resultado['mensaje'];
+        return $resultado['success'];
+        
+    } catch (Exception $e) {
+        // Manejar errores de base de datos
+        error_log("Error en consultarBase: " . $e->getMessage());
+        $_SESSION['mensaje'] = 'Error interno del servidor. Inténtelo más tarde.';
+        return false;
+    }
 }
