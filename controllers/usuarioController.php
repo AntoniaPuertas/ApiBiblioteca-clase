@@ -7,78 +7,50 @@ if (session_status() == PHP_SESSION_NONE) {
 require_once '../config/database.php';
 require_once '../data/usuarioDB.php';
 
-//comprobar que los datos llegan
-if(!isset($_POST['email']) || !isset($_POST['password'])){ enviarALogin(); return;}
+$database = new Database();
+$usuariobd = new UsuarioDB($database);
 
-//comprobar que los datos sean correctos
-$respuesta = comprobarDatos();
-if($respuesta['error'])                                  { enviarALogin(); return; }
+function redirigirConMensaje($url, $success, $mensaje){
+    //almacena el resultado en la sesion
+    $_SESSION['success'] = $success;
+    $_SESSION['mensaje'] = $mensaje;
 
-//comprobar si el usuario existe en la base
-$resultado = consultarBase();
-
-if(!$resultado){
-     enviarALogin(); 
-     return;
-}
-
-//enviar al usuario al index
-$_SESSION['logueado'] = true; 
-header("Location: ../admin/index.php");
-exit();
-
-function enviarALogin(){
-    header("Location: ../admin/login.php");
+    //realiza la redirección
+    header("Location: $url");
     exit();
 }
 
-function comprobarDatos(){
-    $respuesta['error'] = false;
-    //limpiar datos
+//registro usuario
+if($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['registro'])){
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    $email = trim($email);
-    $email = strtolower($email);
-     // Validar formato de email
-    if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
-        $respuesta['error'] = true;
-        $respuesta['mensaje'] = "El formato del correo electrónico no es válido";
-        return $respuesta;
-    }
+    $resultado = $usuariobd->registrarUsuario($email, $password);
 
-    if(strlen($password) < 4 || strlen($password) > 15){
-        $_SESSION['mensaje'] = "La contraseña debe tener entre 4 y 15 caracteres";
-        $respuesta['error'] = true;
-    }
-    return $respuesta;
+    redirigirConMensaje('../admin/index.php', $resultado['success'], $resultado['mensaje']);
 }
 
-function consultarBase(){
-    try {
-        // Crear conexión a la base de datos
-        $database = new Database();
-        $usuarioDB = new UsuarioDB($database);
-        
-        // Obtener los datos del formulario
-        $email = $_POST['email'];
-        $password = $_POST['password'];
-        
-        // Verificar las credenciales
-        $resultado = $usuarioDB->verificarCredenciales($email, $password);
-        
-        // Cerrar la conexión
-        $database->close();
-        $_SESSION['mensaje'] = $resultado['mensaje'];
-        if($resultado['success']){
-            $_SESSION['usuario'] = $resultado['usuario'];
-        }
-        return $resultado['success'];
-        
-    } catch (Exception $e) {
-        // Manejar errores de base de datos
-        error_log("Error en consultarBase: " . $e->getMessage());
-        $_SESSION['mensaje'] = 'Error interno del servidor. Inténtelo más tarde.';
-        return false;
+//Inicio de sesión
+if($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['login'])){
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+    //TODO comprobar que el usuario haya verificado el correo y que no esté bloqueado
+    $resultado = $usuariobd->verificarCredenciales($email, $password);
+    $_SESSION['logueado'] = $resultado['success'];
+
+    if($resultado['success']){
+        $_SESSION['usuario'] = $resultado['usuario'];
+        $ruta = '../admin/index.php';
+    }else{
+        $ruta = '../admin/login.php';
     }
+    redirigirConMensaje($ruta, $resultado['success'], $resultado['mensaje']);
+}
+
+//Recuperación de contraseña
+if($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['recuperar'])){
+    $email = $_POST['email'];
+
+    $resultado = $usuariobd->recuperarPassword($email);
+    redirigirConMensaje('../admin/login.php', $resultado['success'], $resultado['mensaje']);
 }

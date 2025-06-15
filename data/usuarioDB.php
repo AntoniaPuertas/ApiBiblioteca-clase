@@ -2,10 +2,13 @@
 /**
  * Se encarga de interactuar con la base de datos con la tabla usuarios
  */
+
+
 class UsuarioDB {
 
     private $db;
     private $table = 'usuarios';
+    private $url = 'http://localhost/ApiBiblioteca-clase/admin/';
     
     //recibe una conexión ($database) a una base de datos y la mete en $db
     public function __construct($database){
@@ -33,7 +36,7 @@ class UsuarioDB {
      * Obtiene un usuario por su ID
      */
     public function getById($id){
-        $sql = "SELECT id, correo, nombre, apellido, creado, ultimo_acceso, bloqueado FROM {$this->table} WHERE id = ?";
+        $sql = "SELECT * FROM {$this->table} WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         
         if($stmt){
@@ -76,30 +79,31 @@ class UsuarioDB {
     /**
      * Crear un nuevo usuario
      */
-    public function create($data){
-        $sql = "INSERT INTO {$this->table} (correo, nombre, apellido, password) VALUES (?, ?, ?, ?)";
-        $stmt = $this->db->prepare($sql);
-        
-        if($stmt){
-            // Hashear la contraseña
-            $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
-            
-            $stmt->bind_param(
-                "ssss",
-                $data['correo'],
-                $data['nombre'],
-                $data['apellido'],
-                $passwordHash
-            );
+    public function registrarUsuario($email, $password, $verificado = 0){
+        $password = password_hash($password, PASSWORD_DEFAULT);
+        $token = $this->generarToken();
 
+        //comprobar si el email existe
+        $existe = $this->correoExiste($email);
+
+        $sql = "INSERT INTO usuarios (correo, password, token, bloqueado) VALUES(?,?,?,?)";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("sssi", $email, $password, $token, $verificado);
+
+        if(!$existe){
             if($stmt->execute()){
-                $id = $this->db->insert_id;
-                $stmt->close();
-                return $this->getById($id);
+                // correcto
+                $mensaje = "Por favor, verifica tu cuenta haciendo clic en este enlace: $this->url/verificar.php?token=$token";
+                //$mensaje = Correo::enviarCorreo($email, "Cliente", "Verificación de cuenta", $mensaje);
+                $mensaje = $this->enviarCorreoSimulado($email, "Verificación de cuenta", $mensaje);
+            }else{
+                $mensaje = ["success" => false, "message" => "Error en el registro: " . $stmt->error];
             }
-            $stmt->close();
+        }else{
+            $mensaje = ["success" => false, "message" => "Ya existe una cuenta con ese email"];
         }
-        return false;
+
+        return $mensaje;
     }
 
     /**
@@ -214,73 +218,94 @@ class UsuarioDB {
         return false;
     }
 
-    /**
-     * Generar y guardar token de recuperación
-     */
-    public function generarTokenRecuperacion($correo){
-        $usuario = $this->getByEmail($correo);
-        if(!$usuario){
-            return false;
-        }
 
-        $token = bin2hex(random_bytes(32));
-        $sql = "UPDATE {$this->table} SET token_recuperacion = ? WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-        
-        if($stmt){
-            $stmt->bind_param("si", $token, $usuario['id']);
+    public function recuperarPassword($email){
+
+        $existe = $this->correoExiste($email);
+
+        $resultado = ["success" => false, "mensaje" => "El correo electrónico  proporcionado no corresponde a ningún usuario registrado."];
+
+        //si el correo existe en la bbdd
+        if($existe){
+            $token = $this->generarToken();
+
+            $sql = "UPDATE usuarios SET token_recuperacion = ? WHERE correo = ?";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bind_param("ss", $token, $email);
+
+            //ejecuta la consulta
             if($stmt->execute()){
-                $stmt->close();
-                return $token;
+                $mensaje = "Para restablecer tu contraseña, haz click en este enlace: $this->url/restablecer.php?token=$token";
+                //$mensaje = Correo::enviarCorreo($email, "Cliente", "Restablecer Contraseña", $mensaje);
+                $this->enviarCorreoSimulado($email, "Recuperación de contraseña", $mensaje);
+                $resultado = ["success" => true, "mensaje" => "Se ha enviado un enlace de recuperación a tu correo"];
+            }else{
+                $resultado = ["success" => false, "mensaje" => "Error al procesar la solicitud"];
             }
-            $stmt->close();
         }
-        return false;
-    }
-
-    /**
-     * Verificar token de recuperación
-     */
-    public function verificarTokenRecuperacion($token){
-        $sql = "SELECT id, correo FROM {$this->table} WHERE token_recuperacion = ? AND token_recuperacion IS NOT NULL";
-        $stmt = $this->db->prepare($sql);
-        
-        if($stmt){
-            $stmt->bind_param("s", $token);
-            $stmt->execute();
-            $result = $stmt->get_result();
-
-            if($result->num_rows > 0){
-                $usuario = $result->fetch_assoc();
-                $stmt->close();
-                return $usuario;
-            }
-            $stmt->close();
-        }
-        return null;
+        return $resultado;
     }
 
     /**
      * Resetear contraseña usando token
      */
-    public function resetearPassword($token, $nuevaPassword){
-        $usuario = $this->verificarTokenRecuperacion($token);
-        if(!$usuario){
-            return false;
-        }
-
-        $passwordHash = password_hash($nuevaPassword, PASSWORD_DEFAULT);
-        $sql = "UPDATE {$this->table} SET password = ?, token_recuperacion = NULL WHERE id = ?";
+public function restablecerPassword($token, $nueva_password){
+        $password = password_hash($nueva_password, PASSWORD_DEFAULT);
+        //buscamos al usuario con el token proporcionado
+        $sql = "SELECT id FROM usuarios WHERE token_recuperacion = ?";
         $stmt = $this->db->prepare($sql);
-        
-        if($stmt){
-            $stmt->bind_param("si", $passwordHash, $usuario['id']);
-            $result = $stmt->execute();
-            $stmt->close();
-            return $result;
+        $stmt->bind_param("s", $token);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $resultado = ["success" => false, "mensaje" => "El token de recuperación no es válido o ya  ha sido utilizado"];
+
+        if($result->num_rows === 1){
+            $row = $result->fetch_assoc();
+            $user_id = $row['id'];
+
+            //actualizar la contraseña y eliminar el token de recuperación
+            $update_sql = "UPDATE usuarios SET password = ?, token_recuperacion = NULL WHERE id = ?";
+            $update_stmt = $this->db->prepare($update_sql);
+            $update_stmt->bind_param("si", $password, $user_id);
+
+            if($update_stmt->execute()){
+                $resultado = ["success" => true, "mensaje" => "Tu contraseña ha sido actualizada correctamente"];
+            }else{
+                $resultado = ["success" => false, "mensaje" => "Hubo  un error al actualizar tu contraseña. Por favor, intenta de nuevo más tarde"];
+            }
         }
-        return false;
+        return $resultado;
     }
+
+    public function verificarToken($token){
+        //buscar al usuario con el token recibido
+        $sql = "SELECT id FROM usuarios WHERE token = ? AND verificado = 0";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("s", $token);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if($result->num_rows === 1){
+            //token es válido actualizamos el estado de verificación del usuario
+            $row = $result->fetch_assoc();
+            $user_id = $row['id'];
+            
+            $update_sql = "UPDATE usuarios SET verificado = 1, token = NULL WHERE id= ?";
+            $update_stmt = $this->db->prepare($update_sql);
+            $update_stmt->bind_param("i", $user_id);
+
+            $resultado = ["success" => false, "mensaje" => "Hubo un error al verificar tu cuenta. Por favor, intenta de nuevo más tarde"];
+
+            if($update_stmt->execute()){
+                $resultado = ["success" => true, "mensaje" => "Tu cuenta ha sido verificada. Ahora puedes iniciar sesión"];
+            }
+            
+        }else{
+            $resultado = ["success" => false, "mensaje" => "Token no válido"];
+        }
+        return $resultado;
+    }    
 
     /**
      * Verificar si un correo ya existe
@@ -306,5 +331,24 @@ class UsuarioDB {
             return $exists;
         }
         return false;
+    }
+
+        //funcion para enviar correo simulado
+    public function enviarCorreoSimulado($destinatario, $asunto, $mensaje){
+        $archivo_log = __DIR__ . '/correos_simulados.log';
+        $contenido = "Fecha: " . date('Y-m-d H:i:s'. "\n");
+        $contenido .= "Para: $destinatario\n";
+        $contenido .= "Asunto: $asunto\n";
+        $contenido .= "Mensaje:\n$mensaje\n";
+        $contenido .= "__________________________________________\n\n";
+
+        file_put_contents($archivo_log, $contenido, FILE_APPEND);
+
+        return ["success" => true, "mensaje" => "Registro exitoso. Por favor, verifica tu correo"];
+    }
+
+        //generar un token aleatorio
+    public function generarToken(){
+        return bin2hex(random_bytes(32));
     }
 }
