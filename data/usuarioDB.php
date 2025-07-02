@@ -8,7 +8,7 @@ class UsuarioDB {
 
     private $db;
     private $table = 'usuarios';
-    private $url = 'http://localhost/ApiBiblioteca-clase/admin/';
+    private $url = 'http://localhost/ApiBiblioteca/admin/';
     
     //recibe una conexión ($database) a una base de datos y la mete en $db
     public function __construct($database){
@@ -58,7 +58,7 @@ class UsuarioDB {
      * Busca un usuario por su correo electrónico
      */
     public function getByEmail($correo){
-        $sql = "SELECT * FROM {$this->table} WHERE correo = ?";
+        $sql = "SELECT * FROM {$this->table} WHERE email = ?";
         $stmt = $this->db->prepare($sql);
         
         if($stmt){
@@ -86,7 +86,7 @@ class UsuarioDB {
         //comprobar si el email existe
         $existe = $this->correoExiste($email);
 
-        $sql = "INSERT INTO usuarios (correo, password, token, bloqueado) VALUES(?,?,?,?)";
+        $sql = "INSERT INTO usuarios (email, password, token, bloqueado) VALUES(?,?,?,?)";
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("sssi", $email, $password, $token, $verificado);
 
@@ -110,7 +110,7 @@ class UsuarioDB {
      * Actualizar datos de usuario
      */
     public function update($id, $data){
-        $sql = "UPDATE {$this->table} SET correo = ?, nombre = ?, apellido = ?";
+        $sql = "UPDATE {$this->table} SET email = ?, nombre = ?, apellido = ?";
         $params = [$data['correo'], $data['nombre'], $data['apellido']];
         $types = "sss";
 
@@ -229,7 +229,7 @@ class UsuarioDB {
         if($existe){
             $token = $this->generarToken();
 
-            $sql = "UPDATE usuarios SET token_recuperacion = ? WHERE correo = ?";
+            $sql = "UPDATE usuarios SET token_recuperacion = ? WHERE email = ?";
             $stmt = $this->db->prepare($sql);
             $stmt->bind_param("ss", $token, $email);
 
@@ -311,7 +311,7 @@ public function restablecerPassword($token, $nueva_password){
      * Verificar si un correo ya existe
      */
     public function correoExiste($correo, $excludeId = null){
-        $sql = "SELECT id FROM {$this->table} WHERE correo = ?";
+        $sql = "SELECT id FROM {$this->table} WHERE email = ?";
         $params = [$correo];
         $types = "s";
 
