@@ -80,6 +80,7 @@ class UsuarioDB {
      * Crear un nuevo usuario
      */
     public function registrarUsuario($email, $password, $verificado = 0){
+        //crea un hash a partir de la password del usuario
         $password = password_hash($password, PASSWORD_DEFAULT);
         $token = $this->generarToken();
 
@@ -97,10 +98,10 @@ class UsuarioDB {
                 //$mensaje = Correo::enviarCorreo($email, "Cliente", "Verificación de cuenta", $mensaje);
                 $mensaje = $this->enviarCorreoSimulado($email, "Verificación de cuenta", $mensaje);
             }else{
-                $mensaje = ["success" => false, "message" => "Error en el registro: " . $stmt->error];
+                $mensaje = ["success" => false, "mensaje" => "Error en el registro: " . $stmt->error];
             }
         }else{
-            $mensaje = ["success" => false, "message" => "Ya existe una cuenta con ese email"];
+            $mensaje = ["success" => false, "mensaje" => "Ya existe una cuenta con ese email"];
         }
 
         return $mensaje;
@@ -170,6 +171,11 @@ class UsuarioDB {
             return ['success' => false, 'mensaje' => 'Usuario bloqueado'];
         }
 
+        //comprobar que el usuario ha verificado el email
+        if($usuario['verificado'] === 0){
+            return ['success' => false, 'mensaje' => 'Verifica tu correo'];
+        }
+
         // Verificar la contraseña
         if(!password_verify($password, $usuario['password'])){
             return ['success' => false, 'mensaje' => 'Contraseña incorrecta'];
@@ -190,7 +196,7 @@ class UsuarioDB {
      * Actualizar el último acceso del usuario
      */
     public function actualizarUltimoAcceso($id){
-        $sql = "UPDATE {$this->table} SET ultimo_acceso = CURRENT_TIMESTAMP WHERE id = ?";
+        $sql = "UPDATE {$this->table} SET ultima_conexion = CURRENT_TIMESTAMP WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         
         if($stmt){
@@ -333,7 +339,7 @@ public function restablecerPassword($token, $nueva_password){
         return false;
     }
 
-        //funcion para enviar correo simulado
+    //funcion para enviar correo simulado
     public function enviarCorreoSimulado($destinatario, $asunto, $mensaje){
         $archivo_log = __DIR__ . '/correos_simulados.log';
         $contenido = "Fecha: " . date('Y-m-d H:i:s'. "\n");
@@ -347,7 +353,7 @@ public function restablecerPassword($token, $nueva_password){
         return ["success" => true, "mensaje" => "Registro exitoso. Por favor, verifica tu correo"];
     }
 
-        //generar un token aleatorio
+    //generar un token aleatorio
     public function generarToken(){
         return bin2hex(random_bytes(32));
     }

@@ -20,21 +20,13 @@ function redirigirConMensaje($url, $success, $mensaje){
     exit();
 }
 
-//registro usuario
-if($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['registro'])){
-    $email = $_POST['email'];
-    $password = $_POST['password'];
 
-    $resultado = $usuariobd->registrarUsuario($email, $password);
-
-    redirigirConMensaje('../admin/index.php', $resultado['success'], $resultado['mensaje']);
-}
 
 //Inicio de sesión
 if($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['login'])){
     $email = $_POST['email'];
     $password = $_POST['password'];
-    //TODO comprobar que el usuario haya verificado el correo y que no esté bloqueado
+    
     $resultado = $usuariobd->verificarCredenciales($email, $password);
     $_SESSION['logueado'] = $resultado['success'];
 
@@ -45,6 +37,21 @@ if($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['login'])){
         $ruta = '../admin/login.php';
     }
     redirigirConMensaje($ruta, $resultado['success'], $resultado['mensaje']);
+}
+
+//registro usuario
+if(
+    $_SERVER['REQUEST_METHOD'] == "POST" 
+    && isset($_POST['registro'])
+    && isset($_POST['email'])
+    && isset($_POST['password'])
+    ){
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+
+    $resultado = $usuariobd->registrarUsuario($email, $password);
+
+    redirigirConMensaje('../admin/login.php', $resultado['success'], $resultado['mensaje']);
 }
 
 //Recuperación de contraseña

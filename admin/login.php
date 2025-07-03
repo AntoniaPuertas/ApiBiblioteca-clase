@@ -40,7 +40,7 @@ if(isset($_SESSION['logueado']) && $_SESSION['logueado']) {
         
         <div class="crear-cuenta">
             <p>¿No tienes una cuenta?</p>
-            <a class="abrir-modal-registro">Registrarse</a>
+            <a class="abrir-modal-registro">Crear cuenta nueva</a>
         </div>        
         <?php
         if(isset($_SESSION['mensaje'])){
@@ -51,7 +51,7 @@ if(isset($_SESSION['logueado']) && $_SESSION['logueado']) {
         ?>
     </div>
 
-        <div id="miModalRecuperar" class="modal">
+    <div id="miModalRecuperar" class="modal">
         <div class="modal-contenido">
             <span class="cerrarRecuperar">&times;</span>
             <h2>Recuperar Contraseña</h2>
