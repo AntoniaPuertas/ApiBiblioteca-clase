@@ -116,7 +116,9 @@ body {
             text-align: center;
             border: 1px solid #f5c6cb;
         }
-        
+        #mensaje_cliente{
+            display: none;
+        }
 
 /* Modal */
 

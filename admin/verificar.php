@@ -28,7 +28,7 @@ if(isset($_GET['token'])){
     <div class="container">
         <h1>Verificación de cuenta</h1>
         <p class="mensaje"><?php echo $mensaje; ?></p>
-        <a href="index.php" class="volver">Ir a Iniciar Sesión</a>
+        <a href="login.php" class="volver">Ir a Iniciar Sesión</a>
     </div>
 </body>
 </html>

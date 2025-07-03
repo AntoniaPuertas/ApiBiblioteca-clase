@@ -8,7 +8,7 @@ class UsuarioDB {
 
     private $db;
     private $table = 'usuarios';
-    private $url = 'http://localhost/ApiBiblioteca/admin/';
+    private $url = 'http://localhost/ApiBiblioteca/admin';
     
     //recibe una conexión ($database) a una base de datos y la mete en $db
     public function __construct($database){
@@ -264,7 +264,7 @@ public function restablecerPassword($token, $nueva_password){
         $stmt->execute();
         $result = $stmt->get_result();
 
-        $resultado = ["success" => false, "mensaje" => "El token de recuperación no es válido o ya  ha sido utilizado"];
+        $resultado = ["success" => false, "mensaje" => "El token de recuperación no es válido o ya ha sido utilizado"];
 
         if($result->num_rows === 1){
             $row = $result->fetch_assoc();
@@ -308,6 +308,7 @@ public function restablecerPassword($token, $nueva_password){
             }
             
         }else{
+            //no hay ningún usuario con ese token y verificado = 0
             $resultado = ["success" => false, "mensaje" => "Token no válido"];
         }
         return $resultado;
@@ -355,6 +356,7 @@ public function restablecerPassword($token, $nueva_password){
 
     //generar un token aleatorio
     public function generarToken(){
+        //todo generar token más robusto
         return bin2hex(random_bytes(32));
     }
 }

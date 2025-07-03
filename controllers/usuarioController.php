@@ -55,7 +55,12 @@ if(
 }
 
 //Recuperación de contraseña
-if($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['recuperar'])){
+if(
+    $_SERVER['REQUEST_METHOD'] == "POST" 
+    && isset($_POST['recuperar'])
+    && isset($_POST['email'])
+    ){
+
     $email = $_POST['email'];
 
     $resultado = $usuariobd->recuperarPassword($email);

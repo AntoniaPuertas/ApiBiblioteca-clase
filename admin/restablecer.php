@@ -9,8 +9,11 @@ $usuariobd = new UsuarioDB($database);
 //verificar si se ha proporcionado un token
 if(isset($_GET['token'])){
     $token = $_GET['token'];
-
-    if($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['nueva_password'])){
+    
+    if(
+        $_SERVER['REQUEST_METHOD'] == "POST" 
+        && isset($_POST['nueva_password'])
+        && isset($_POST['confirmar_password'])){
         $resultado = $usuariobd->restablecerPassword($token, $_POST['nueva_password']);
         $mensaje = $resultado['mensaje'];
     }
@@ -18,10 +21,7 @@ if(isset($_GET['token'])){
     header("Location: login.php");
     exit();
 }
-
-
 ?>
-
 
 <!DOCTYPE html>
 <html lang="es">
@@ -34,7 +34,7 @@ if(isset($_GET['token'])){
 <body>
     <div class="container">
     <h1>Restablecer Contraseña</h1>
-    <?php
+     <?php
         if(!empty($mensaje)): ?>
         <p class="mensaje"><?php echo $mensaje; ?></p>
         <?php if($resultado['success']): ?>
@@ -42,12 +42,14 @@ if(isset($_GET['token'])){
         <?php endif; 
         else: 
         ?>
-        <form method="POST">
-            <input type="password" name="nueva_password" required placeholder="Nueva Contraseña">
-            <input type="password" name="confirmar_password" required placeholder="Confirmar Nueva Contraseña">
+        <form method="POST" id="formRestablecer">
+            <input type="password" name="nueva_password" id="nuevaPassword" required placeholder="Nueva Contraseña">
+            <input type="password" name="confirmar_password" id="confirmarPassword" required placeholder="Confirmar Nueva Contraseña">
             <input type="submit" value="Restablecer Contraseña">
+            <p class="error" id="mensaje_cliente"></p>
         </form>
-        <?php endif; ?>
+        
+        <?php endif; ?> 
     </div>
     <script src="js/restablecer.js"></script>
 </body>
