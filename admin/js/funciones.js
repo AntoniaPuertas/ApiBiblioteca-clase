@@ -1,4 +1,5 @@
-const url = 'http://localhost/ApiBiblioteca/api/libros';
+const url = 'http://www.alntxoni.com/api/index.php/libros';
+// const url = 'http://localhost/ApiBiblioteca/api/libros';
 
 let librosData = [] //almacenar los datos de todos los libros
 let modoEdicion = false //para saber si estamos creando o editando
@@ -7,10 +8,29 @@ let libroEditandoId = null // ID del libro que se está editando
 document.addEventListener('DOMContentLoaded', () => {
     
     //realizo la llamada a la api para conseguir los datos
+    // fetch(url)
+    //     .then(response => response.json())
+    //     .then(data => mostrarLibros(data))
+    //     .catch(error => console.error('Error:', error));
+
     fetch(url)
-        .then(response => response.json())
-        .then(data => mostrarLibros(data))
-        .catch(error => console.error('Error:', error));
+    .then(response => response.text())
+    .then(text => {
+        // Limpiar la respuesta
+        let jsonString = text.trim();
+        
+        // Si empieza con "Array{", remover "Array"
+        if (jsonString.startsWith('Array{')) {
+            jsonString = jsonString.substring(5);
+        }
+        
+        // Parsear el JSON
+        const data = JSON.parse(jsonString);
+        mostrarLibros(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
 
     document.getElementById("crear").addEventListener('click', () => {
         // si document.querySelector('form').style.display devuelve un valor vacío 

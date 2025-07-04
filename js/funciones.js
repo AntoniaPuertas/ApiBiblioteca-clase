@@ -1,12 +1,33 @@
 //crear evento para que se ejecute el código cuando haya terminado de cargarse el DOM
 document.addEventListener('DOMContentLoaded', () => {
-    const url = 'http://localhost/ApiBiblioteca/api/libros';
+    // const url = 'http://localhost/ApiBiblioteca/api/libros';
+    const url = 'http://www.alntxoni.com/api/index.php/libros';
 
     //realizo la llamada a la api para conseguir los datos
+    // fetch(url)
+    //     .then(response => response.json())
+    //     .then(data => mostrarLibros(data))
+    //     .catch(error => console.error('Error:', error));
+
+
     fetch(url)
-        .then(response => response.json())
-        .then(data => mostrarLibros(data))
-        .catch(error => console.error('Error:', error));
+    .then(response => response.text())
+    .then(text => {
+        // Limpiar la respuesta
+        let jsonString = text.trim();
+        
+        // Si empieza con "Array{", remover "Array"
+        if (jsonString.startsWith('Array{')) {
+            jsonString = jsonString.substring(5);
+        }
+        
+        // Parsear el JSON
+        const data = JSON.parse(jsonString);
+        mostrarLibros(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
 })
 
 function mostrarLibros(datos){

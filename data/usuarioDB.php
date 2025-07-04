@@ -8,7 +8,8 @@ class UsuarioDB {
 
     private $db;
     private $table = 'usuarios';
-    private $url = 'http://localhost/ApiBiblioteca/admin';
+    // private $url = 'http://localhost/ApiBiblioteca/admin';
+    private $url = 'http://www.alntxoni.com/admin';
     
     //recibe una conexión ($database) a una base de datos y la mete en $db
     public function __construct($database){
