@@ -5,7 +5,12 @@ require_once 'config.php';
 
 //clase  para establecer la conexión con la base de datos
 class Database {
-
+    //Definimos los atributos
+    //Les ponemos el valor de las constantes de config.php
+    private $host = DB_HOST;
+    private $username = DB_USER;
+    private $password = DB_PASS;
+    private $database = DB_NAME;
     //guarda la conexion con la base de datos
     //la conexión con la base de datos es un objeto de tipo mysqli
     private $conexion;
@@ -17,16 +22,13 @@ class Database {
 
     //Abre la conexión con la base de datos
     private function connect(){
-        $host_name = 'db5018152581.hosting-data.io';
-        $database = 'dbs14399127';
-        $user_name = 'dbu2106078';
-        $password = 'segurA3.!33';
+        $this->conexion = new mysqli($this->host, $this->username, $this->password, $this->database);
 
-        $this->conexion = new mysqli($host_name, $user_name, $password, $database);
-
-          if ($this->conexion->connect_error) {
-            die('<p>Error al conectar con servidor MySQL: '. $this->conexion->connect_error .'</p>');
+        if($this->conexion->connect_error){
+            die("Error de conexión: " . $this->conexion->connect_error);
         }
+
+        $this->conexion->set_charset("utf8");
     }
 
     public function getConexion(){
