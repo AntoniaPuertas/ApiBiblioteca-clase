@@ -1,7 +1,7 @@
 //crear evento para que se ejecute el código cuando haya terminado de cargarse el DOM
 document.addEventListener('DOMContentLoaded', () => {
-    // const url = 'http://localhost/ApiBiblioteca/api/libros';
-    const url = 'http://www.alntxoni.com/api/index.php/libros';
+
+    const url = 'api/index.php/libros';
 
     //realizo la llamada a la api para conseguir los datos
     // fetch(url)

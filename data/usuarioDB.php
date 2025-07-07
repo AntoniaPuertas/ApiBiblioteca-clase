@@ -2,14 +2,13 @@
 /**
  * Se encarga de interactuar con la base de datos con la tabla usuarios
  */
-
+require_once '../config/config.php';
 
 class UsuarioDB {
 
     private $db;
     private $table = 'usuarios';
-    // private $url = 'http://localhost/ApiBiblioteca/admin';
-    private $url = 'http://www.alntxoni.com/admin';
+    private $url = URL_ADMIN;
     
     //recibe una conexión ($database) a una base de datos y la mete en $db
     public function __construct($database){

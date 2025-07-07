@@ -1,5 +1,4 @@
-const url = 'http://www.alntxoni.com/api/index.php/libros';
-// const url = 'http://localhost/ApiBiblioteca/api/libros';
+const url = '../api/index.php/libros';
 
 let librosData = [] //almacenar los datos de todos los libros
 let modoEdicion = false //para saber si estamos creando o editando
