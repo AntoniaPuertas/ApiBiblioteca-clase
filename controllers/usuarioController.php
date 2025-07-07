@@ -31,8 +31,6 @@ if($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['login'])){
     $_SESSION['logueado'] = $resultado['success'];
 
     if($resultado['success']){
-        $_SESSION['usuario'] = $resultado['usuario'];
-        $ruta = '../admin/index.php';
     }else{
         $ruta = '../admin/login.php';
     }

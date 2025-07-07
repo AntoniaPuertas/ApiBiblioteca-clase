@@ -1,5 +1,5 @@
 <?php
-include_once 'config.php';
+include_once '../config/config.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -61,13 +61,13 @@ try {
     // Send the email
     if(!$mail->send()){
         error_log("Error al enviar correo: " . $mail->ErrorInfo);
-        return ["success" => false, "message" => 'El correo no pudo ser enviado: ' . $mail->ErrorInfo];
+        return ["success" => false, "mensaje" => 'El correo no pudo ser enviado: ' . $mail->ErrorInfo];
     } else {
         error_log("Correo enviado exitosamente a: $forEmail");
-        return ["success" =>true, "message" => "Registro exitoso. Por favor, verifica tu correo."];
+        return ["success" =>true, "mensaje" => "Registro exitoso. Por favor, verifica tu correo."];
     }
     }catch(Exception $e){
-        return ["success" => false, "message" => 'Error al enviar el formulario'];
+        return ["success" => false, "mensaje" => 'Error al enviar el formulario'];
     }
     
 }

@@ -1,18 +1,32 @@
 <?php
 /**
- * Se encarga de interactuar con la base de datos con la tabla libros
+ * Clase LibroDB
+ * 
+ * Se encarga de gestionar las operaciones CRUD (Crear, Leer, Actualizar, Eliminar)
+ * para los libros en la base de datos.
  */
 class LibroDB {
 
     private $db;
     private $table = 'libros';
-    //recibe una conexión ($database) a una base de datos y la mete en $db
+
+    /**
+     * Constructor de la clase LibroDB.
+     * 
+     * Recibe una instancia de la clase Database y obtiene la conexión a la base de datos.
+     *
+     * @param object $database Objeto que gestiona la conexión a la base de datos.
+     */
     public function __construct($database){
         $this->db = $database->getConexion();
     }
 
     
-    //extrae todos los datos de la tabla $table
+    /**
+     * Obtiene todos los libros de la base de datos.
+     *
+     * @return array Un array de arrays asociativos, donde cada array representa un libro. Devuelve un array vacío si no hay libros.
+     */
     public  function getAll(){
         //construye la consulta
         $sql = "SELECT * FROM {$this->table}";
@@ -39,6 +53,12 @@ class LibroDB {
         
     }
 
+    /**
+     * Obtiene un libro específico por su ID.
+     *
+     * @param int $id El ID del libro a buscar.
+     * @return array|null Un array asociativo con los datos del libro si se encuentra, o null si no existe o hay un error.
+     */
     public function getById($id){
         $sql = "SELECT * FROM {$this->table} WHERE id = ?";
         $stmt = $this->db->prepare($sql);
@@ -64,7 +84,20 @@ class LibroDB {
         return null;
     }
 
-    //Crear un nuevo libro
+    /**
+     * Crea un nuevo libro en la base de datos.
+     *
+     * @param array $data Un array asociativo con los datos del libro.
+     *                    - 'titulo' (string) Título del libro (obligatorio).
+     *                    - 'autor' (string) Autor del libro (obligatorio).
+     *                    - 'genero' (string) Género del libro (opcional).
+     *                    - 'fecha_publicacion' (string) Fecha de publicación (opcional).
+     *                    - 'disponible' (bool) Si el libro está disponible (opcional, por defecto true).
+     *                    - 'imagen' (string) URL de la imagen de portada (opcional).
+     *                    - 'favorito' (bool) Si el libro es un favorito (opcional, por defecto false).
+     *                    - 'resumen' (string) Resumen del libro (opcional).
+     * @return array|false Un array asociativo con los datos del libro recién creado, o false si la creación falla.
+     */
     public function create($data){
   
         $sql = "INSERT INTO {$this->table} (titulo, autor, genero, fecha_publicacion, disponible, imagen, favorito, resumen) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -103,7 +136,13 @@ class LibroDB {
         return false;
     }
 
-    //actualizar libro
+    /**
+     * Actualiza los datos de un libro existente.
+     *
+     * @param int $id El ID del libro a actualizar.
+     * @param array $data Un array asociativo con los nuevos datos del libro. Los campos no proporcionados no se actualizarán.
+     * @return array|false Un array asociativo con los datos del libro actualizado, o false si la actualización falla o el libro no existe.
+     */
     public function update($id, $data){
 
                $sql = "UPDATE {$this->table} SET
@@ -158,7 +197,12 @@ class LibroDB {
         return false; 
     }
 
-    //eliminar un libro
+    /**
+     * Elimina un libro de la base de datos.
+     *
+     * @param int $id El ID del libro a eliminar.
+     * @return bool True si la eliminación fue exitosa, false en caso contrario.
+     */
     public function delete($id){
         $sql = "DELETE FROM {$this->table} WHERE id = ?";
         $stmt = $this->db->prepare($sql);
