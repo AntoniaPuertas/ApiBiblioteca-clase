@@ -1,18 +1,47 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biblioteca</title>
-    <link rel="stylesheet" href="css/estilos.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Roboto', 'sans-serif'],
+                        'bebas': ['Bebas Neue', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <h1>Biblioteca</h1>
-        <div class="libros" id="divLibros">
-            
+<body class="bg-white dark:bg-black transition-colors duration-500">
+    <div class="absolute top-5 right-5">
+        <button id="theme-switcher" class="w-12 h-12 text-2xl rounded-full bg-neutral-200 dark:bg-neutral-800 text-yellow-500 dark:text-purple-400">☀️</button>
+    </div>
+
+    <div class="container mx-auto px-4 py-12">
+        <h1 class="font-bebas text-5xl md:text-7xl text-center text-black dark:text-white mb-12">Catálogo de Libros</h1>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8" id="divLibros">
+            <!-- Los libros se insertarán aquí -->
         </div>
     </div>
+
+    <!-- Ventana modal para mostrar los detalles del libro -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div id="modal-content" class="bg-white dark:bg-neutral-900 text-black dark:text-white max-w-2xl w-full rounded-lg shadow-2xl relative transform transition-all duration-300 scale-95 opacity-0">
+            <button class="close absolute top-4 right-4 text-3xl font-bold">&times;</button>
+            <div id="modal-body" class="p-8"></div>
+        </div>
+    </div>
+
     <script src="js/funciones.js"></script>
 </body>
 </html>
